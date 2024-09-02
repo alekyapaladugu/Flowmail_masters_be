@@ -5,10 +5,13 @@ from dotenv import load_dotenv
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 import json
+import requests
 
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
+api_key = os.getenv('HUGGUNG_FACE_API_KEY')
+
 
 @app.route("/api/generateMail", methods=['POST'])
 @cross_origin()
@@ -17,7 +20,10 @@ def generateMail():
         try:
             inputMsg = request.json['text']
             client = OpenAI()
-            prompt = f"Turn the following mail {inputMsg} into a professional academic email to a professor and also provide suggestions separately as a feedback on the original email along with subject line so that students can learn from it. Also follow those suggestions in your email. Provide a valid JSON output."
+            prompt = f"""Turn the following mail {inputMsg} into a professional academic email 
+            to a professor and also provide suggestions separately as a feedback 
+            on the original email along with subject line so that students 
+            can learn from it. Also follow those suggestions in your email. Provide a valid JSON output."""
             schema = {
                 "type": "object",
                 "properties": {
@@ -38,7 +44,8 @@ def generateMail():
             completion = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    { "role": "system", "content": "You are a helpful email assistant for students and provides necessary sugesstions and subject line for the students emails." },
+                    { "role": "system", "content": """You are a helpful email assistant for students 
+                     and provides necessary sugesstions and subject line for the students emails.""" },
                     { "role": "user", "content": prompt }],
                 functions= [{"name": "email_assistant", "parameters": schema }],
                 function_call= {"name": "email_assistant"}
